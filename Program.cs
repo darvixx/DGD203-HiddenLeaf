@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 class Program
 {
@@ -9,7 +10,6 @@ class Program
 
         Console.Write("May I learn your name: ");
         string playerName = Console.ReadLine();
-
 
         while (!IsAllLetters(playerName))
         {
@@ -28,28 +28,21 @@ class Program
         Console.WriteLine("Game has begun, 5x5 map has been created.");
 
         int[] playerPosition = { 0, 0 };
-
         int[] swordPosition = { 1, 4 };
         bool hasSword = false;
-
         int[] elekidPosition = { 4, 3 };
         bool hasElekid = false;
-
         int[] goblin1Position = { 1, 3 };
         int[] goblin2Position = { 3, 3 };
-
         int[] npcPaulPosition = { 5, 5 };
-
         List<string> inventory = new List<string>();
-
         int attemptsRemaining = 2;
         bool hasAnsweredCorrectly = false;
 
         while (true)
         {
-            Console.Write("Enter your move (e.g., 2R for 2 steps to the right, 'O' to view inventory): ");
+            Console.Write("Enter your move (e.g., 2R for 2 steps to the right, 'O' to view inventory, 'S' to save, 'L' to load): ");
             string move = Console.ReadLine();
-
 
             if (move.ToUpper() == "O")
             {
@@ -60,13 +53,29 @@ class Program
                 }
                 continue;
             }
-
+            else if (move.ToUpper() == "S")
+            {
+                SaveGame(playerName, playerAge, playerPosition, hasSword, hasElekid, inventory, hasAnsweredCorrectly);
+                Console.WriteLine("Game saved successfully!");
+                continue;
+            }
+            else if (move.ToUpper() == "L")
+            {
+                if (LoadGame(out playerName, out playerAge, out playerPosition, out hasSword, out hasElekid, out inventory, out hasAnsweredCorrectly))
+                {
+                    Console.WriteLine("Game loaded successfully!");
+                }
+                else
+                {
+                    Console.WriteLine("No saved game found. Starting a new game.");
+                }
+                continue;
+            }
 
             if (IsValidMove(move))
             {
                 UpdatePlayerPosition(playerPosition, move);
                 Console.WriteLine($"Your current position: [{playerPosition[0]}, {playerPosition[1]}]");
-
 
                 if (!hasSword && playerPosition[0] == swordPosition[0] && playerPosition[1] == swordPosition[1])
                 {
@@ -75,14 +84,12 @@ class Program
                     inventory.Add("Sword");
                 }
 
-
                 if (!hasElekid && playerPosition[0] == elekidPosition[0] && playerPosition[1] == elekidPosition[1])
                 {
                     Console.WriteLine("You found an Elekid at [4, 3]! You now have an Elekid.");
                     hasElekid = true;
                     inventory.Add("Elekid");
                 }
-
 
                 if ((playerPosition[0] == goblin1Position[0] && playerPosition[1] == goblin1Position[1]) ||
                     (playerPosition[0] == goblin2Position[0] && playerPosition[1] == goblin2Position[1]))
@@ -91,11 +98,9 @@ class Program
                     {
                         Console.WriteLine("You encountered a Goblin!");
 
-
                         string goblinItem = (playerPosition[0] == goblin1Position[0] && playerPosition[1] == goblin1Position[1]) ? "X" : "I";
 
                         Console.WriteLine($"With your sword, you defeat the Goblin and receive a {goblinItem} as a reward.");
-
 
                         inventory.Add(goblinItem);
                     }
@@ -105,12 +110,10 @@ class Program
                     }
                 }
 
-
                 if (playerPosition[0] == npcPaulPosition[0] && playerPosition[1] == npcPaulPosition[1])
                 {
                     Console.WriteLine("Can't believe my eyes! He is 'The Sword of The Thunder' Paul.");
                     Console.WriteLine("Then he approaches you and says, 'Hi lad, looks like you lost? I'm sorry, but in order to pass here, you need to solve my riddle.'");
-
 
                     if (hasElekid)
                     {
@@ -128,7 +131,6 @@ class Program
                         string correctAnswer = "E";
                         string answer;
 
-
                         for (int i = 0; i < 2; i++)
                         {
                             Console.Write("Your answer (A, B, C, D, E): ");
@@ -143,7 +145,6 @@ class Program
                             else
                             {
                                 Console.WriteLine($"Incorrect! You have {1 - i} attempts remaining.");
-
 
                                 if (i == 0)
                                 {
@@ -162,11 +163,9 @@ class Program
                             }
                         }
 
-
                         if (!hasAnsweredCorrectly)
                         {
                             Console.WriteLine("The Sword of The Thunder Paul says, 'You failed to solve my riddle. Prepare to face the consequences.'");
-
                             return;
                         }
                         else
@@ -186,14 +185,11 @@ class Program
                         Console.Write("Your answer (A, B, C, D, E): ");
                         string answer = Console.ReadLine().ToUpper();
 
-
-                        Console.WriteLine($"Incorrect! You have {--attemptsRemaining} attempts remaining.You might wanna travel maybe ?");
-
+                        Console.WriteLine($"Incorrect! You have {--attemptsRemaining} attempts remaining.");
 
                         if (attemptsRemaining == 0)
                         {
                             Console.WriteLine("The Sword of The Thunder Paul says, 'You failed to solve my riddle. Prepare to face the consequences.'");
-
                             return;
                         }
                     }
@@ -205,13 +201,11 @@ class Program
             }
         }
 
-
         if (hasAnsweredCorrectly)
         {
             Console.WriteLine("Congratulations! You have successfully passed 'The Sword of The Thunder' Paul's riddle and won the game.");
         }
     }
-
 
     static bool IsAllLetters(string input)
     {
@@ -225,10 +219,9 @@ class Program
         return true;
     }
 
-
     static bool IsValidMove(string move)
     {
-        if (move.ToUpper() == "O")
+        if (move.ToUpper() == "O" || move.ToUpper() == "S" || move.ToUpper() == "L")
             return true;
 
         if (move.Length != 2)
@@ -245,7 +238,6 @@ class Program
 
         return true;
     }
-
 
     static void UpdatePlayerPosition(int[] position, string move)
     {
@@ -268,8 +260,96 @@ class Program
                 break;
         }
 
-
         position[0] = Math.Max(0, Math.Min(position[0], 5));
         position[1] = Math.Max(0, Math.Min(position[1], 5));
     }
+
+    static void SaveGame(string playerName, int playerAge, int[] playerPosition, bool hasSword, bool hasElekid, List<string> inventory, bool hasAnsweredCorrectly)
+    {
+        try
+        {
+            using (StreamWriter writer = new StreamWriter("savegame.txt"))
+            {
+                writer.WriteLine(playerName);
+                writer.WriteLine(playerAge);
+                writer.WriteLine($"{playerPosition[0]},{playerPosition[1]}");
+                writer.WriteLine(hasSword);
+                writer.WriteLine(hasElekid);
+                foreach (string item in inventory)
+                {
+                    writer.WriteLine(item);
+                }
+                writer.WriteLine(hasAnsweredCorrectly);
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Error saving the game: {e.Message}");
+        }
+    }
+
+    static bool LoadGame(out string playerName, out int playerAge, out int[] playerPosition, out bool hasSword, out bool hasElekid, out List<string> inventory, out bool hasAnsweredCorrectly)
+    {
+        playerName = "";
+        playerAge = 0;
+        playerPosition = new int[2];
+        hasSword = false;
+        hasElekid = false;
+        inventory = new List<string>();
+        hasAnsweredCorrectly = false;
+
+        try
+        {
+            string filePath = Path.Combine(Environment.CurrentDirectory, "savegame.txt");
+
+            if (File.Exists(filePath))
+            {
+                string[] lines = File.ReadAllLines(filePath);
+
+                playerName = lines[0];
+                if (!int.TryParse(lines[1], out playerAge))
+                {
+                    return false;
+                }
+
+                string[] position = lines[2].Split(',');
+                if (position.Length != 2 || !int.TryParse(position[0], out playerPosition[0]) || !int.TryParse(position[1], out playerPosition[1]))
+                {
+                    return false;
+                }
+
+                if (!bool.TryParse(lines[3], out hasSword))
+                {
+                    return false;
+                }
+
+                if (!bool.TryParse(lines[4], out hasElekid))
+                {
+                    return false;
+                }
+
+                for (int i = 5; i < lines.Length - 1; i++)
+                {
+                    inventory.Add(lines[i]);
+                }
+
+                if (!bool.TryParse(lines[lines.Length - 1], out hasAnsweredCorrectly))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Error loading the game: {e.Message}");
+            return false;
+        }
+    }
+
 }
