@@ -185,7 +185,7 @@ class Program
                         Console.Write("Your answer (A, B, C, D, E): ");
                         string answer = Console.ReadLine().ToUpper();
 
-                        Console.WriteLine($"Incorrect! You have {--attemptsRemaining} attempts remaining.");
+                        Console.WriteLine($"Incorrect! You have {--attemptsRemaining} attempts remaining.You might wanna travel maybe ? ");
 
                         if (attemptsRemaining == 0)
                         {
